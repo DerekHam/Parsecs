@@ -1,5 +1,5 @@
 // Load star map data from the wiki
-$.get('https://yourwiki.fandom.com/wiki/StarMapData?action=raw', function(data) {
+$.get('https://parsecs.fandom.com/wiki/StarMapData?action=raw', function(data) {
   const starMapData = JSON.parse(data);
 
   // Initialize Three.js scene
