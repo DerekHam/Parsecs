@@ -1,0 +1,154 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Space+Grotesk:wght@500;600&display=swap');
+
+body {
+    margin: 0;
+    padding: 0;
+    background: #050508;
+    color: #eee;
+    font-family: 'Inter', system-ui, sans-serif;
+    overflow: hidden;
+    height: 100vh;
+}
+
+h1 {
+    position: absolute;
+    top: 20px;
+    left: 30px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -1px;
+    margin: 0;
+    color: #fff;
+    text-shadow: 0 0 20px rgba(100, 200, 255, 0.6);
+    z-index: 100;
+    pointer-events: none;
+}
+
+.subtitle {
+    position: absolute;
+    top: 58px;
+    left: 30px;
+    font-size: 13px;
+    color: #88aaff;
+    letter-spacing: 2px;
+    z-index: 100;
+    pointer-events: none;
+}
+
+svg {
+    display: block;
+}
+
+#tooltip {
+    position: absolute;
+    background: rgba(10, 15, 35, 0.96);
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+    pointer-events: none;
+    z-index: 200;
+    border: 1px solid #334466;
+    display: none;
+    max-width: 220px;
+    line-height: 1.4;
+}
+
+#sidebar {
+    position: fixed;
+    right: 30px;
+    top: 30px;
+    width: 340px;
+    background: rgba(12, 18, 40, 0.97);
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 180, 255, 0.15);
+    padding: 24px;
+    color: #eee;
+    z-index: 300;
+    display: none;
+    border: 1px solid #445577;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+#sidebar h2 {
+    margin: 0 0 12px 0;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 24px;
+    color: #aaffff;
+}
+
+#sidebar .type {
+    color: #88ccff;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 16px;
+}
+
+#sidebar .diameter {
+    color: #99aabb;
+    font-size: 13px;
+    margin-bottom: 20px;
+}
+
+#sidebar p {
+    margin: 0 0 22px 0;
+    color: #ccddee;
+}
+
+#sidebar a {
+    display: inline-block;
+    background: #1a2a55;
+    color: #aaffff;
+    padding: 8px 18px;
+    border-radius: 6px;
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 13px;
+    transition: all 0.2s;
+}
+
+#sidebar a:hover {
+    background: #2a4a88;
+    color: #fff;
+}
+
+#close-btn {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    background: none;
+    border: none;
+    color: #667788;
+    font-size: 28px;
+    cursor: pointer;
+    line-height: 1;
+    padding: 0;
+    width: 30px;
+    height: 30px;
+}
+
+.legend {
+    position: absolute;
+    bottom: 30px;
+    left: 30px;
+    background: rgba(10, 15, 35, 0.7);
+    padding: 12px 18px;
+    border-radius: 8px;
+    font-size: 12px;
+    color: #8899bb;
+    z-index: 100;
+    border: 1px solid #334466;
+}
+
+.body-circle {
+    cursor: pointer;
+    transition: filter 0.15s;
+}
+
+.body-circle:hover {
+    filter: brightness(1.25) saturate(1.3);
+}
