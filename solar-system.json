@@ -1,6 +1,6 @@
 {
-  "scaleAU": 480,          // ← was 12 → now ×40 – Neptune ~17 000 px from Sun
-  "moonScale": 1.0,        // ← can be 0.7–1.5 to fine-tune moon cluster visibility
+  "scaleAU": 30,          // ← was 12 → now ×40 – Neptune ~17 000 px from Sun
+  "moonScale": 0.7,        // ← can be 0.7–1.5 to fine-tune moon cluster visibility
   "bodies":[
     {
       "id": "sun",
