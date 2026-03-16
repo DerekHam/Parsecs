@@ -40,12 +40,6 @@ svg {
     display: block;
 }
 
-#svg {
-    min-width: 100vw;
-    min-height: 100vh;
-    display: block;
-}
-
 #tooltip {
     position: absolute;
     background: rgba(10, 15, 35, 0.96);
