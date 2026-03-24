@@ -3,50 +3,225 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Parsecs</title>
-    <style>
-        /* Styling for sidebar and layers */
-        #sidebar {
-            display: none; /* Initially hidden */
-        }
-        /* Other styling */
-    </style>
+    <title>Solar System • Hard Sci-Fi Novel Map</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="primary-layer">
-        <h1>Planets</h1>
-        <!-- Planet elements with click behavior -->
-        <div class="planet" data-name="Mercury">Mercury</div>
-        <div class="planet" data-name="Venus">Venus</div>
-        <div class="planet" data-name="Earth">Earth</div>
-        <div class="planet" data-name="Mars">Mars</div>
-        <div class="sun" data-url="https://en.wikipedia.org/wiki/Sun">Sun</div>
-    </div>
-    <div id="secondary-layer">
-        <h1>Moons</h1>
-        <!-- Moon elements, now hidden -->
-        <div class="moon hidden">Moon of Mercury</div>
-        <div class="moon hidden">Moon of Earth</div>
-    </div>
+    <h1>SOLAR SYSTEM</h1>
+    <div class="subtitle">STATIC MAP • REAL ORBITS • HARD SCI-FI NOVEL</div>
+    
+    <svg id="svg" width="1400" height="900"></svg>
+    
+    <div id="tooltip"></div>
+    
     <div id="sidebar">
-        <h2>Sidebar</h2>
-        <p><a href="https://en.wikipedia.org/wiki/Mercury">Mercury Wikipedia</a></p>
-        <p><a href="https://en.wikipedia.org/wiki/Venus">Venus Wikipedia</a></p>
-        <p><a href="https://en.wikipedia.org/wiki/Earth">Earth Wikipedia</a></p>
-        <p><a href="https://en.wikipedia.org/wiki/Mars">Mars Wikipedia</a></p>
+        <button id="close-btn">×</button>
+        <h2 id="side-name"></h2>
+        <div class="type" id="side-type"></div>
+        <div class="diameter" id="side-diameter"></div>
+        <p id="side-desc"></p>
+        <a href="#" id="side-link" target="_blank">→ EXPLORE ON WIKIPEDIA</a>
     </div>
+    
+    <div class="legend">
+        • Hover for quick info<br>
+        • Click body → open link + sidebar<br>
+        • Zoom & pan with mouse wheel / drag<br>
+        • Real orbital distances (AU) • Adjust displayScale in JSON
+    </div>
+
     <script>
-        // Click behavior implementation
-        document.querySelectorAll('.planet').forEach(planet => {
-            planet.addEventListener('click', function() {
-                // Show sidebar for primary layer planets
-                document.getElementById('sidebar').style.display = 'block';
+        // Load data → then initialize visualization
+        d3.json("solar-system.json").then(function(data) {
+            const solarBodies = data.bodies;
+            const config = data.scaling;
+            const displayScale = config.displayScale;  // pixels per AU
+            const radiusScale = config.radiusScale;    // size multiplier
+            const labelOffset = config.labelOffset;
+
+            const width = 1400;
+            const height = 900;
+            const centerX = width / 2;
+            const centerY = height / 2;
+
+            const svg = d3.select("#svg")
+                .attr("width", width)
+                .attr("height", height);
+
+            const g = svg.append("g");
+
+            // Background star field
+            const stars = [];
+            for (let i = 0; i < 280; i++) {
+                stars.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    r: Math.random() * 1.6 + 0.6
+                });
+            }
+            g.selectAll(".bg-star")
+                .data(stars)
+                .enter()
+                .append("circle")
+                .attr("class", "bg-star")
+                .attr("cx", d => d.x)
+                .attr("cy", d => d.y)
+                .attr("r", d => d.r)
+                .attr("fill", "#ffffff")
+                .attr("opacity", 0.75);
+
+            // Calculate display radius from actual radius in km
+            function getDisplayRadius(radiusKm) {
+                if (radiusKm > 600000) return 28;  // Sun always big
+                if (radiusKm >= 65000) return 18 * radiusScale;
+                if (radiusKm >= 20000) return 12 * radiusScale;
+                if (radiusKm >= 5000) return 8 * radiusScale;
+                if (radiusKm >= 1000) return 5 * radiusScale;
+                return 2.5 * radiusScale;
+            }
+
+            // Compute absolute positions
+            const positions = {};
+            positions.sun = { x: centerX, y: centerY };
+
+            solarBodies.filter(b => b.parent === "sun").forEach(body => {
+                const r = body.orbitRadiusAU * displayScale;
+                const ang = body.angle;
+                positions[body.id] = {
+                    x: centerX + r * Math.cos(ang),
+                    y: centerY + r * Math.sin(ang)
+                };
             });
+
+            solarBodies.filter(b => b.parent !== null && b.parent !== "sun").forEach(body => {
+                const parentPos = positions[body.parent];
+                const r = body.orbitRadiusAU * displayScale;
+                const ang = body.angle;
+                positions[body.id] = {
+                    x: parentPos.x + r * Math.cos(ang),
+                    y: parentPos.y + r * Math.sin(ang)
+                };
+            });
+
+            // Draw orbits
+            const planetOrbitData = solarBodies.filter(b => b.parent === "sun" && b.orbitRadiusAU > 0);
+            g.selectAll(".planet-orbit")
+                .data(planetOrbitData)
+                .enter()
+                .append("circle")
+                .attr("cx", centerX)
+                .attr("cy", centerY)
+                .attr("r", d => d.orbitRadiusAU * displayScale)
+                .attr("fill", "none")
+                .attr("stroke", "#223344")
+                .attr("stroke-width", 1.8)
+                .attr("stroke-dasharray", "1,3");
+
+            const moonOrbitData = solarBodies.filter(b => b.parent !== null && b.parent !== "sun");
+            g.selectAll(".moon-orbit")
+                .data(moonOrbitData)
+                .enter()
+                .append("circle")
+                .attr("cx", d => positions[d.parent].x)
+                .attr("cy", d => positions[d.parent].y)
+                .attr("r", d => d.orbitRadiusAU * displayScale)
+                .attr("fill", "none")
+                .attr("stroke", "#334455")
+                .attr("stroke-width", 1)
+                .attr("stroke-dasharray", "2,2");
+
+            // Draw bodies
+            const bodyGroups = g.selectAll(".body-group")
+                .data(solarBodies)
+                .enter()
+                .append("g")
+                .attr("class", "body-group")
+                .attr("transform", d => `translate(${positions[d.id].x}, ${positions[d.id].y})`);
+
+            bodyGroups.append("circle")
+                .attr("class", "body-circle")
+                .attr("r", d => getDisplayRadius(d.radiusKm))
+                .attr("fill", d => d.color)
+                .attr("stroke", "#ffffff")
+                .attr("stroke-width", d => d.id === "sun" ? 3.5 : 2)
+                .attr("stroke-opacity", 0.9);
+
+            bodyGroups.filter(d => d.id === "sun")
+                .append("circle")
+                .attr("r", 38)
+                .attr("fill", "#FFEE77")
+                .attr("opacity", 0.18);
+
+            bodyGroups.append("text")
+                .attr("y", d => getDisplayRadius(d.radiusKm) + labelOffset)
+                .attr("text-anchor", "middle")
+                .attr("fill", "#ccddee")
+                .attr("font-size", d => getDisplayRadius(d.radiusKm) > 12 ? 11.5 : 10)
+                .attr("font-weight", 500)
+                .attr("letter-spacing", 0.5)
+                .text(d => d.name);
+
+            // Interactivity
+            const tooltip = d3.select("#tooltip");
+
+            bodyGroups.on("mouseover", function(event, d) {
+                const info = `${d.name}<br><span style=\"color:#88bbff\">${d.type.toUpperCase()}</span><br>Diameter: ${(d.radiusKm * 2).toLocaleString()} km`;
+                tooltip
+                    .html(info)
+                    .style("display", "block")
+                    .style("left", (event.pageX + 18) + "px")
+                    .style("top", (event.pageY - 12) + "px");
+            })
+            .on("mouseout", () => tooltip.style("display", "none"))
+            .on("click", function(event, d) {
+                if (d.link) window.open(d.link, "_blank");
+                showSidebar(d);
+            });
+
+            // Zoom & Pan
+            const zoomBehavior = d3.zoom()
+                .scaleExtent([0.18, 9])
+                .on("zoom", (event) => g.attr("transform", event.transform));
+
+            svg.call(zoomBehavior);
+
+            // Sidebar
+            function showSidebar(body) {
+                d3.select("#side-name").text(body.name);
+                d3.select("#side-type").text(body.type.toUpperCase());
+                d3.select("#side-diameter").text(`Diameter: ${(body.radiusKm * 2).toLocaleString()} km`);
+                d3.select("#side-desc").text(body.description);
+                d3.select("#side-link").attr("href", body.link);
+                d3.select("#sidebar").style("display", "block");
+            }
+
+            window.hideSidebar = function() {
+                d3.select("#sidebar").style("display", "none");
+            };
+
+            svg.on("click", (event) => {
+                if (event.target.tagName === "svg") hideSidebar();
+            });
+
+            document.addEventListener("keydown", (e) => {
+                if (e.key.toLowerCase() === "r") {
+                    svg.transition().duration(800).call(zoomBehavior.transform, d3.zoomIdentity);
+                }
+            });
+
+            // Initial view
+            setTimeout(() => {
+                svg.transition().duration(1200)
+                    .call(zoomBehavior.transform, d3.zoomIdentity.scale(0.92).translate(40, 30));
+            }, 400);
+        }).catch(error => {
+            console.error("Error loading solar-system.json:", error);
+            document.body.innerHTML += "<h2 style='color:red; text-align:center;'>Failed to load solar-system.json</h2>";
         });
-        document.querySelector('.sun').addEventListener('click', function() {
-            // Open Wikipedia directly when sun is clicked
-            window.open(this.dataset.url, '_blank');
-        });
+
+        // Close sidebar button
+        document.getElementById("close-btn").addEventListener("click", hideSidebar);
     </script>
 </body>
 </html>
